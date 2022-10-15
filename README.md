@@ -9,6 +9,8 @@ To look for token use GET request to `localhost:8085/index`.
 # Improvements to do:
 
 - WatchService and it's duplicate events
+- Way to add separate files to index
+- Way to remove folders and files from index
 - Parallel write access to index
 - More available tokenization algorithms and ability to add your own regex for tokenization rules 
 - Inject properties from `application.properties`
