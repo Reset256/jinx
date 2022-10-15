@@ -1,10 +1,17 @@
-# Task
+# Description
 
 Text indexing library. To use it you should add folder you want to index via POST request to `localhost:8085/index`, all files in it will be indexed. Every file you create in the watched folder will be added to index as well, removed files also removed from index, changed files reindexed completely. Reindexation delay is around 15 seconds.
 
 Files are tokenized word by word. To add your own tokenization algorithm implement `Tokenizer.class` interface.  
 
 To look for token use GET request to `localhost:8085/index`.
+
+# Start
+
+There are several ways to start this app:
+
+- via `webapi/src/main/java/org/java/indexer/webapi/WebapiApplication.java` and its `main()` method
+- via `spring-boot-maven-plugin:run`
 
 # Improvements to do:
 
