@@ -22,6 +22,8 @@ public class RegexTokenizer implements Tokenizer {
 
     @Override
     public Map<String, Integer> tokenize(String s) {
-        return Arrays.stream(s.split(regEx)).collect(Collectors.toMap(Function.identity(), s1 -> 1, Integer::sum));
+        return Arrays.stream(s.split(regEx))
+                .filter(token -> !token.isBlank())
+                .collect(Collectors.toMap(Function.identity(), s1 -> 1, Integer::sum));
     }
 }

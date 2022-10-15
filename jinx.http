@@ -1,0 +1,11 @@
+###
+POST localhost:8085/index
+Content-Type: application/json
+
+{
+  "path" : "/Users/victor/Downloads/temp/jinx"
+}
+
+
+###
+GET localhost:8085/index/dependency

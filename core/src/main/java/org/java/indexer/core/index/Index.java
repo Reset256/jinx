@@ -83,6 +83,7 @@ public class Index {
     }
 
     public List<IndexedFile> queryToken(String token) {
+        log.info("Looking for token \"{}\" in the index", token);
         try {
             if (readWriteLock.readLock().tryLock(5, TimeUnit.SECONDS)) {
                 return indexedFiles.values().stream()

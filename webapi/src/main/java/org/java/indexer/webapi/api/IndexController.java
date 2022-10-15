@@ -17,9 +17,10 @@ import java.util.Map;
 public class IndexController {
 
     private final Indexer indexer;
+    public static final List<String> IGNORED_NAMES = List.of(".DS_Store");
 
     public IndexController() {
-        this.indexer = new Indexer(List.of(".DS_Store"));
+        this.indexer = new Indexer(IGNORED_NAMES);
     }
 
     @PostMapping
