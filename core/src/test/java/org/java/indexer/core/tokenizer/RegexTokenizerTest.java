@@ -19,7 +19,19 @@ class RegexTokenizerTest {
         final Map<String, Integer> result = tokenizer.tokenize(s);
 
         //then
-        assertEquals(result, Map.of("test", 2, "test0", 2, "1test", 2,"_test", 1));
+        assertEquals(Map.of("test", 2, "test0", 2, "1test", 2,"_test", 1), result);
+    }
+
+    @Test
+    public void defaultRegexTokenizer_russianLanguage() {
+        //given
+        final String s = "тест тест0 1тест _тест тест0 1тест </тест> тёст тЁст";
+
+        //when
+        final Map<String, Integer> result = tokenizer.tokenize(s);
+
+        //then
+        assertEquals(Map.of("тест", 2, "тест0", 2, "1тест", 2,"_тест", 1, "тёст", 1, "тЁст", 1), result);
     }
 
     @Test
@@ -31,7 +43,7 @@ class RegexTokenizerTest {
         final Map<String, Integer> result = tokenizer.tokenize(s);
 
         //then
-        assertEquals(result, Map.of("1", 1, "2", 1, "3", 1,"4", 1));
+        assertEquals(Map.of("1", 1, "2", 1, "3", 1,"4", 1), result);
     }
 
 }

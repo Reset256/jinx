@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class RegexTokenizer implements Tokenizer {
 
-    private static final String DEFAULT_REGEX = "\\W+";
+    private static final String DEFAULT_REGEX = "[^A-Za-z0-9_А-яЁё]";
 
     private final String regEx;
 
