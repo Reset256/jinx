@@ -3,9 +3,27 @@ POST localhost:8085/index
 Content-Type: application/json
 
 {
-  "path" : "/Users/victor/Downloads/temp/jinx"
+  "path": "/Users/victor/Downloads/temp/jinx",
+  "regEx" : "\\s+",
+  "ignoredNames": [
+    ".DS_Store"
+  ]
+}
+
+###
+POST localhost:8085/index
+Content-Type: application/json
+
+{
+  "path": "/Users/victor/Downloads/temp/jinx",
+  "ignoredNames": [
+    ".DS_Store"
+  ]
 }
 
 
 ###
 GET localhost:8085/index/dependency
+
+###
+GET localhost:8085/index/Hello

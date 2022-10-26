@@ -11,21 +11,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/index")
 public class IndexController {
 
-    private final Indexer indexer;
-    public static final List<String> IGNORED_NAMES = List.of(".DS_Store");
-
-    public IndexController() {
-        this.indexer = new Indexer(IGNORED_NAMES);
-    }
+    private Indexer indexer;
 
     @PostMapping
-    public ResponseEntity<?> index(@RequestBody Map<String, String> body) {
-        indexer.indexFolder(body.get("path"));
+    @SuppressWarnings({"unchecked"})
+    public ResponseEntity<?> index(@RequestBody Map<String, Object> body) {
+        final String path = (String) body.get("path");
+        final List<String> ignoredNames = (List<String>) body.get("ignoredNames");
+
+        indexer = Optional.ofNullable(body.get("regEx"))
+                .map(o -> (String) o)
+                .map(s -> new Indexer(ignoredNames, s))
+                .orElseGet(() -> new Indexer(ignoredNames));
+
+        indexer.indexFolder(path);
         return ResponseEntity.ok().build();
     }
 

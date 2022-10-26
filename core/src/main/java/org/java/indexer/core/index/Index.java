@@ -34,6 +34,12 @@ public class Index {
         this.indexedFiles = new ConcurrentHashMap<>();
         this.readWriteLock = new ReentrantReadWriteLock();
     }
+    public Index(List<String> ignoredNames, String regEx) {
+        this.ignoredNames = ignoredNames;
+        this.tokenizer = new RegexTokenizer(regEx);
+        this.indexedFiles = new ConcurrentHashMap<>();
+        this.readWriteLock = new ReentrantReadWriteLock();
+    }
 
     public void addFolder(Path folderPath) {
         if (Files.isRegularFile(folderPath)) {
