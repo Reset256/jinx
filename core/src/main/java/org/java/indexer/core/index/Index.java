@@ -59,13 +59,13 @@ public class Index {
                 readWriteLock.writeLock().lock();
                 indexedFiles.compute(filePath,
                         (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizer.tokenize(readFile(filePath))));
+                log.info("File {} added to index", filePath);
             } finally {
                 readWriteLock.writeLock().unlock();
             }
         } else {
-            throw new RuntimeException("File is already in the index");
+            log.info("File {}  is already in the index", filePath);
         }
-        log.info("File {} added to index", filePath);
     }
 
     void removeFile(Path filePath) {

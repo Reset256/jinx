@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 
 @Slf4j
 class IndexerTest {
@@ -33,12 +34,14 @@ class IndexerTest {
         indexer = new Indexer(List.of(".DS_Store"));
         outerFolderPath = IndexerTest.class.getResource(separator + "jinx").getPath();
         innerFolderPath = outerFolderPath + separator + "inner";
-        indexer.indexFolder(outerFolderPath);
         log.info("Test has started");
     }
 
     @Test
     public void indexInnerAndOuterFolder() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final List<IndexedFile> result = indexer.queryToken("dependency");
 
@@ -51,6 +54,9 @@ class IndexerTest {
 
     @Test
     public void indexInnerFolder() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final List<IndexedFile> result = indexer.queryToken("logback");
 
@@ -59,8 +65,29 @@ class IndexerTest {
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
     }
 
+
+    @Test
+    public void doubleDotFilePath() {
+        //given
+        String innerFolderDoubleDot = innerFolderPath + separator + ".." + separator + "inner";
+        indexer.indexFolder(innerFolderPath);
+        indexer.indexFolder(innerFolderDoubleDot);
+
+        //when
+        final List<IndexedFile> result = indexer.queryToken("logback");
+
+        //then
+        assertThat(result, hasSize(1));
+        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+                containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
+
+    }
+
     @Test
     public void indexOuterFolder() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final List<IndexedFile> result = indexer.queryToken("classic1");
 
@@ -71,6 +98,9 @@ class IndexerTest {
 
     @Test
     public void outerFolderFileCreation() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final String newFilePath = outerFolderPath + separator + "outer.txt";
         File newFile = new File(newFilePath);
@@ -95,6 +125,9 @@ class IndexerTest {
 
     @Test
     public void innerFolderFileCreation() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final String newFilePath = innerFolderPath + separator + "inner.txt";
         File newFile = new File(newFilePath);
@@ -120,6 +153,9 @@ class IndexerTest {
     @Test
     @SneakyThrows
     public void outerFolderFileChange() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final String filePath = outerFolderPath + separator + "abl.bla";
         final String content = Files.readString(Paths.get(filePath));
@@ -147,6 +183,9 @@ class IndexerTest {
     @Test
     @SneakyThrows
     public void innerFolderFileChange() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
         //when
         final String filePath = innerFolderPath + separator + "bla.bla";
         final String content = Files.readString(Paths.get(filePath));

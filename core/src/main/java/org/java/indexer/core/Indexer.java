@@ -19,7 +19,7 @@ public class Indexer {
     }
 
     public void indexFolder(String path) {
-        final Path folderPath = Paths.get(path);
+        final Path folderPath = Paths.get(path).normalize();
         index.addFolder(folderPath);
         folderWatcherService.watchFoldersWithIndex(folderPath, index);
     }
