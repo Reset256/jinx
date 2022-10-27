@@ -1,7 +1,6 @@
 package org.java.indexer.core.index;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.java.indexer.core.Indexer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,21 +19,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
-@Slf4j
 class IndexerTest {
 
     private Indexer indexer;
     private String outerFolderPath;
     private String innerFolderPath;
 
-    private static final String separator = FileSystems.getDefault().getSeparator();
+    private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
 
     @BeforeEach
     public void beforeEach() {
         indexer = new Indexer(List.of(".DS_Store"));
-        outerFolderPath = IndexerTest.class.getResource(separator + "jinx").getPath();
-        innerFolderPath = outerFolderPath + separator + "inner";
-        log.info("Test has started");
+        outerFolderPath = IndexerTest.class.getResource(SEPARATOR + "jinx").getPath();
+        innerFolderPath = outerFolderPath + SEPARATOR + "inner";
     }
 
     @Test
@@ -69,7 +66,7 @@ class IndexerTest {
     @Test
     public void doubleDotFilePath() {
         //given
-        String innerFolderDoubleDot = innerFolderPath + separator + ".." + separator + "inner";
+        String innerFolderDoubleDot = innerFolderPath + SEPARATOR + ".." + SEPARATOR + "inner";
         indexer.indexFolder(innerFolderPath);
         indexer.indexFolder(innerFolderDoubleDot);
 
@@ -102,7 +99,7 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final String newFilePath = outerFolderPath + separator + "outer.txt";
+        final String newFilePath = outerFolderPath + SEPARATOR + "outer.txt";
         File newFile = new File(newFilePath);
         try {
             newFile.createNewFile();
@@ -129,7 +126,7 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final String newFilePath = innerFolderPath + separator + "inner.txt";
+        final String newFilePath = innerFolderPath + SEPARATOR + "inner.txt";
         File newFile = new File(newFilePath);
         try {
             newFile.createNewFile();
@@ -157,7 +154,7 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final String filePath = outerFolderPath + separator + "abl.bla";
+        final String filePath = outerFolderPath + SEPARATOR + "abl.bla";
         final String content = Files.readString(Paths.get(filePath));
         try {
             try (final FileWriter fileWriter = new FileWriter(filePath, true)) {
@@ -187,7 +184,7 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final String filePath = innerFolderPath + separator + "bla.bla";
+        final String filePath = innerFolderPath + SEPARATOR + "bla.bla";
         final String content = Files.readString(Paths.get(filePath));
         try {
             try (final FileWriter fileWriter = new FileWriter(filePath, true)) {
