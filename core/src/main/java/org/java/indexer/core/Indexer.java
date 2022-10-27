@@ -2,7 +2,7 @@ package org.java.indexer.core;
 
 import org.java.indexer.core.index.FolderWatcherService;
 import org.java.indexer.core.index.Index;
-import org.java.indexer.core.index.IndexedFile;
+import org.java.indexer.core.index.QueryResult;
 import org.java.indexer.core.utils.RegExUtils;
 
 import java.nio.file.Path;
@@ -33,7 +33,7 @@ public class Indexer {
         folderWatcherService.watchFoldersWithIndex(folderPath, index);
     }
 
-    public List<IndexedFile> queryToken(String token) {
+    public QueryResult queryToken(String token) {
         return index.queryToken(token);
     }
 }

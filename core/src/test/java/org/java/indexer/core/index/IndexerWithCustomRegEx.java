@@ -25,10 +25,10 @@ public class IndexerWithCustomRegEx {
         //when
         final Indexer indexer = new Indexer(List.of(".DS_Store"), regEx);
         indexer.indexFolder(FOLDER_PATH);
-        final List<IndexedFile> result = indexer.queryToken("custom");
+        final QueryResult result = indexer.queryToken("custom");
 
         //then
-        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+        assertThat(result.getOccurrences().keySet(),
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/abl.bla"));
     }
 

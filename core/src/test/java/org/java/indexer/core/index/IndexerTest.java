@@ -10,10 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -40,10 +38,10 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final List<IndexedFile> result = indexer.queryToken("dependency");
+        final QueryResult result = indexer.queryToken("dependency");
 
         //then
-        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+        assertThat(result.getOccurrences().keySet(),
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/abl.bla",
                         "/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"
                 ));
@@ -55,10 +53,10 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final List<IndexedFile> result = indexer.queryToken("logback");
+        final QueryResult result = indexer.queryToken("logback");
 
         //then
-        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+        assertThat(result.getOccurrences().keySet(),
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
     }
 
@@ -71,11 +69,11 @@ class IndexerTest {
         indexer.indexFolder(innerFolderDoubleDot);
 
         //when
-        final List<IndexedFile> result = indexer.queryToken("logback");
+        final QueryResult result = indexer.queryToken("logback");
 
         //then
-        assertThat(result, hasSize(1));
-        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+        assertThat(result.getOccurrences().keySet(), hasSize(1));
+        assertThat(result.getOccurrences().keySet(),
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
 
     }
@@ -86,10 +84,10 @@ class IndexerTest {
         indexer.indexFolder(outerFolderPath);
 
         //when
-        final List<IndexedFile> result = indexer.queryToken("classic1");
+        final QueryResult result = indexer.queryToken("classic1");
 
         //then
-        assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+        assertThat(result.getOccurrences().keySet(),
                 containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/abl.bla"));
     }
 
@@ -107,10 +105,10 @@ class IndexerTest {
                 fileWriter.write("newOuterFile");
             }
             Thread.sleep(15000);
-            final List<IndexedFile> result = indexer.queryToken("newOuterFile");
+            final QueryResult result = indexer.queryToken("newOuterFile");
 
             //then
-            assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+            assertThat(result.getOccurrences().keySet(),
                     containsInAnyOrder(newFilePath));
 
         } catch (IOException | InterruptedException e) {
@@ -134,10 +132,10 @@ class IndexerTest {
                 fileWriter.write("newInnerFile");
             }
             Thread.sleep(15000);
-            final List<IndexedFile> result = indexer.queryToken("newInnerFile");
+            final QueryResult result = indexer.queryToken("newInnerFile");
 
             //then
-            assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+            assertThat(result.getOccurrences().keySet(),
                     containsInAnyOrder(newFilePath));
 
         } catch (IOException | InterruptedException e) {
@@ -161,10 +159,10 @@ class IndexerTest {
                 fileWriter.write("\nnewLineText");
             }
             Thread.sleep(15000);
-            final List<IndexedFile> result = indexer.queryToken("newLineText");
+            final QueryResult result = indexer.queryToken("newLineText");
 
             //then
-            assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+            assertThat(result.getOccurrences().keySet(),
                     containsInAnyOrder(filePath));
 
         } catch (IOException e) {
@@ -191,10 +189,10 @@ class IndexerTest {
                 fileWriter.write("\nnewLineText");
             }
             Thread.sleep(15000);
-            final List<IndexedFile> result = indexer.queryToken("newLineText");
+            final QueryResult result= indexer.queryToken("newLineText");
 
             //then
-            assertThat(result.stream().map(IndexedFile::getPath).map(Path::toString).collect(Collectors.toList()),
+            assertThat(result.getOccurrences().keySet(),
                     containsInAnyOrder(filePath));
 
         } catch (IOException e) {

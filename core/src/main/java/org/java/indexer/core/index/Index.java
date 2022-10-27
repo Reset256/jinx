@@ -7,8 +7,8 @@ import org.java.indexer.core.tokenizer.Tokenizer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -88,16 +88,15 @@ public class Index {
         log.info("File {} removed from index", filePath);
     }
 
-    public List<IndexedFile> queryToken(String token) {
+    public QueryResult queryToken(String token) {
         log.info("Looking for token \"{}\" in the index", token);
         try {
             if (readWriteLock.readLock().tryLock(5, TimeUnit.SECONDS)) {
-                return indexedFiles.values().stream()
-                        .map(indexedFile -> new AbstractMap.SimpleEntry<>(indexedFile, indexedFile.query(token)))
+                final Map<String, Integer> occurrenceMap = indexedFiles.values().stream()
+                        .map(indexedFile -> new AbstractMap.SimpleEntry<>(indexedFile.getPath(), indexedFile.query(token)))
                         .filter(entry -> entry.getValue() != 0)
-                        .sorted(Comparator.comparingInt(AbstractMap.SimpleEntry::getValue))
-                        .map(AbstractMap.SimpleEntry::getKey)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toMap(entry -> entry.getKey().toString(), AbstractMap.SimpleEntry::getValue));
+                return new QueryResult(token, occurrenceMap);
             } else {
                 throw new RuntimeException("Index is being updated, try later");
             }
@@ -107,6 +106,5 @@ public class Index {
             readWriteLock.readLock().unlock();
         }
     }
-
 
 }
