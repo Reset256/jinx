@@ -16,19 +16,19 @@ public class Indexer {
 
     public Indexer(List<String> ignoredNames) {
         this.index = new Index(ignoredNames);
-        this.folderWatcherService = new FolderWatcherService(ignoredNames);
+        this.folderWatcherService = new FolderWatcherService(ignoredNames, index);
     }
 
     public Indexer(List<String> ignoredNames, String regEx) {
         this.index = new Index(ignoredNames, RegExUtils.validateRegEx(regEx)
                 .orElseThrow(() -> new RuntimeException("Regular expression is not valid and cannot be used as part of tokenization algorithm")));
-        this.folderWatcherService = new FolderWatcherService(ignoredNames);
+        this.folderWatcherService = new FolderWatcherService(ignoredNames, index);
     }
 
     public void indexFolder(String path) {
         final Path folderPath = Paths.get(path).normalize();
         index.addFolder(folderPath);
-        folderWatcherService.watchFoldersWithIndex(folderPath, index);
+        folderWatcherService.watchFolders(folderPath);
     }
 
     public QueryResult queryToken(String token) {

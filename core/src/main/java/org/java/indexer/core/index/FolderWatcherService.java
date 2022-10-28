@@ -14,31 +14,29 @@ import java.util.concurrent.Executors;
 public class FolderWatcherService {
 
     private final ExecutorService executorService;
-    private final List<String> ignoredNames;
     private final Set<Path> watchedFolder;
+    private final FolderWatcher folderWatcher;
 
-    public FolderWatcherService(List<String> ignoredNames) {
+    public FolderWatcherService(List<String> ignoredNames, Index index) {
         executorService = Executors.newCachedThreadPool(r -> {
             Thread t = Executors.defaultThreadFactory().newThread(r);
             t.setDaemon(true);
             return t;
         });
-        this.ignoredNames = ignoredNames;
         this.watchedFolder = new HashSet<>();
+        try {
+            folderWatcher = new FolderWatcher(FileSystems.getDefault().newWatchService(), index, ignoredNames);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        executorService.submit(folderWatcher);
     }
 
-    public void watchFoldersWithIndex(Path folderPath, Index index) {
+    public void watchFolders(Path folderPath) {
         final List<Path> newFolders = FileUtils.listFolders(folderPath);
         newFolders.stream()
                 .filter(o -> !watchedFolder.contains(o))
                 .peek(watchedFolder::add)
-                .map(folder -> {
-                    try {
-                        return new FolderWatcher(FileSystems.getDefault().newWatchService(), index, folder, ignoredNames);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .forEach(executorService::submit);
+                .forEach(folderWatcher::watchFolder);
     }
 }
