@@ -14,10 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.java.indexer.core.utils.FileUtils.listFiles;
-import static org.java.indexer.core.utils.FileUtils.readFile;
 
 @Slf4j
 public class Index {
@@ -34,7 +34,7 @@ public class Index {
         this.indexedFiles = new ConcurrentHashMap<>();
         this.readWriteLock = new ReentrantReadWriteLock();
     }
-    public Index(List<String> ignoredNames, String regEx) {
+    public Index(List<String> ignoredNames, Pattern regEx) {
         this.ignoredNames = ignoredNames;
         this.tokenizer = new RegexTokenizer(regEx);
         this.indexedFiles = new ConcurrentHashMap<>();
@@ -64,7 +64,7 @@ public class Index {
             try {
                 readWriteLock.writeLock().lock();
                 indexedFiles.compute(filePath,
-                        (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizer.tokenize(readFile(filePath))));
+                        (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizer.tokenize(filePath)));
                 log.info("File {} added to index", filePath);
             } finally {
                 readWriteLock.writeLock().unlock();

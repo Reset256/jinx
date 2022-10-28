@@ -14,22 +14,22 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 
 class IndexerTest {
 
     private Indexer indexer;
-    private String outerFolderPath;
-    private String innerFolderPath;
+    private final String outerFolderPath = IndexerTest.class.getResource(SEPARATOR + "jinx").getPath();
+    private final String innerFolderPath = outerFolderPath + SEPARATOR + "inner";
 
     private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
 
     @BeforeEach
     public void beforeEach() {
         indexer = new Indexer(List.of(".DS_Store"));
-        outerFolderPath = IndexerTest.class.getResource(SEPARATOR + "jinx").getPath();
-        innerFolderPath = outerFolderPath + SEPARATOR + "inner";
     }
 
     @Test
@@ -42,9 +42,9 @@ class IndexerTest {
 
         //then
         assertThat(result.getOccurrences().keySet(),
-                containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/abl.bla",
-                        "/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"
-                ));
+                contains(containsString("target/test-classes/jinx/abl.bla"),
+                        containsString("target/test-classes/jinx/inner/bla.bla"))
+        );
     }
 
     @Test
@@ -57,7 +57,7 @@ class IndexerTest {
 
         //then
         assertThat(result.getOccurrences().keySet(),
-                containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
+                contains(containsString(("target/test-classes/jinx/inner/bla.bla"))));
     }
 
 
@@ -74,7 +74,7 @@ class IndexerTest {
         //then
         assertThat(result.getOccurrences().keySet(), hasSize(1));
         assertThat(result.getOccurrences().keySet(),
-                containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/inner/bla.bla"));
+                contains(containsString(("target/test-classes/jinx/inner/bla.bla"))));
 
     }
 
@@ -88,7 +88,7 @@ class IndexerTest {
 
         //then
         assertThat(result.getOccurrences().keySet(),
-                containsInAnyOrder("/Users/victor/IdeaProjects/jinx/core/target/test-classes/jinx/abl.bla"));
+                contains(containsString(("target/test-classes/jinx/abl.bla"))));
     }
 
     @Test
@@ -189,7 +189,7 @@ class IndexerTest {
                 fileWriter.write("\nnewLineText");
             }
             Thread.sleep(15000);
-            final QueryResult result= indexer.queryToken("newLineText");
+            final QueryResult result = indexer.queryToken("newLineText");
 
             //then
             assertThat(result.getOccurrences().keySet(),

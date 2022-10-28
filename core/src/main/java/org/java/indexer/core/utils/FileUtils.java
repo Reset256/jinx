@@ -2,8 +2,9 @@ package org.java.indexer.core.utils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -11,7 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class FileUtils {
@@ -56,12 +60,16 @@ public class FileUtils {
         }
     }
 
-    public static String readFile(Path path) {
-        try {
-            log.info("Reading file {}", path.toString());
-            return Files.readString(path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException("File cannot be read", e);
+
+    public static void parseAndConsume(Path path, Consumer<String> stringConsumer, Charset charset, Pattern regEx) throws IOException {
+        try (final BufferedReader reader = Files.newBufferedReader(path, charset)) {
+            String line = reader.readLine();
+            while (line != null) {
+                Arrays.stream(regEx.split(line))
+                        .filter(token -> !token.isBlank())
+                        .forEach(stringConsumer);
+                line = reader.readLine();
+            }
         }
     }
 

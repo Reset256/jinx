@@ -1,16 +1,16 @@
 package org.java.indexer.core.utils;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class RegExUtils {
 
-    public static boolean isRegExValid(String regEx) {
+    public static Optional<Pattern> validateRegEx(String regEx) {
         try {
-            Pattern.compile(regEx);
-            return true;
+            return Optional.of(Pattern.compile(regEx));
         } catch (PatternSyntaxException e) {
-            return false;
+            return Optional.empty();
         }
     }
 }

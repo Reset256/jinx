@@ -20,10 +20,8 @@ public class Indexer {
     }
 
     public Indexer(List<String> ignoredNames, String regEx) {
-        if (!RegExUtils.isRegExValid(regEx)) {
-            throw new RuntimeException("Regular expression is not valid and cannot be used as part of tokenization algorithm");
-        }
-        this.index = new Index(ignoredNames, regEx);
+        this.index = new Index(ignoredNames, RegExUtils.validateRegEx(regEx)
+                .orElseThrow(() -> new RuntimeException("Regular expression is not valid and cannot be used as part of tokenization algorithm")));
         this.folderWatcherService = new FolderWatcherService(ignoredNames);
     }
 
