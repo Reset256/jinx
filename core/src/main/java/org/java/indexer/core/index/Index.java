@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
@@ -24,21 +25,27 @@ public class Index {
 
     private final Tokenizer tokenizer;
     private final ConcurrentHashMap<Path, IndexedFile> indexedFiles;
-    private final ReadWriteLock readWriteLock;
     private final List<String> ignoredNames;
+    private final Lock writeLock;
+    private final Lock readLock;
 
 
     public Index(List<String> ignoredNames) {
         this.ignoredNames = ignoredNames;
         this.tokenizer = new RegexTokenizer();
         this.indexedFiles = new ConcurrentHashMap<>();
-        this.readWriteLock = new ReentrantReadWriteLock();
+        final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+        writeLock = readWriteLock.writeLock();
+        readLock = readWriteLock.readLock();
     }
+
     public Index(List<String> ignoredNames, Pattern regEx) {
         this.ignoredNames = ignoredNames;
         this.tokenizer = new RegexTokenizer(regEx);
         this.indexedFiles = new ConcurrentHashMap<>();
-        this.readWriteLock = new ReentrantReadWriteLock();
+        final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+        writeLock = readWriteLock.writeLock();
+        readLock = readWriteLock.readLock();
     }
 
     public void addFolder(Path folderPath) {
@@ -50,24 +57,24 @@ public class Index {
     }
 
     void removeFolder(Path folderPath) {
+        writeLock.lock();
         try {
-            readWriteLock.writeLock().lock();
             indexedFiles.entrySet().removeIf(pathIndexedFileEntry -> pathIndexedFileEntry.getKey().startsWith(folderPath.toString()));
         } finally {
-            readWriteLock.writeLock().unlock();
+            writeLock.unlock();
         }
         log.info("Folder {} removed from index", folderPath);
     }
 
     void addFile(Path filePath) {
         if (!indexedFiles.containsKey(filePath)) {
+            writeLock.lock();
             try {
-                readWriteLock.writeLock().lock();
                 indexedFiles.compute(filePath,
                         (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizer.tokenize(filePath)));
                 log.info("File {} added to index", filePath);
             } finally {
-                readWriteLock.writeLock().unlock();
+                writeLock.unlock();
             }
         } else {
             log.info("File {}  is already in the index", filePath);
@@ -76,11 +83,11 @@ public class Index {
 
     void removeFile(Path filePath) {
         if (indexedFiles.containsKey(filePath)) {
+            writeLock.lock();
             try {
-                readWriteLock.writeLock().lock();
                 indexedFiles.remove(filePath);
             } finally {
-                readWriteLock.writeLock().unlock();
+                writeLock.unlock();
             }
         } else {
             throw new RuntimeException("File is not in the index");
@@ -91,7 +98,7 @@ public class Index {
     public QueryResult queryToken(String token) {
         log.info("Looking for token \"{}\" in the index", token);
         try {
-            if (readWriteLock.readLock().tryLock(5, TimeUnit.SECONDS)) {
+            if (readLock.tryLock(5, TimeUnit.SECONDS)) {
                 final Map<String, Integer> occurrenceMap = indexedFiles.values().stream()
                         .map(indexedFile -> new AbstractMap.SimpleEntry<>(indexedFile.getPath(), indexedFile.query(token)))
                         .filter(entry -> entry.getValue() != 0)
@@ -103,7 +110,7 @@ public class Index {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            readWriteLock.readLock().unlock();
+            readLock.unlock();
         }
     }
 
