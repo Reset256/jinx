@@ -18,7 +18,7 @@ public class FolderWatcherService {
     private final FolderWatcher folderWatcher;
 
     public FolderWatcherService(List<String> ignoredNames, Index index) {
-        executorService = Executors.newCachedThreadPool(r -> {
+        executorService = Executors.newFixedThreadPool(1, r -> {
             Thread t = Executors.defaultThreadFactory().newThread(r);
             t.setDaemon(true);
             return t;
