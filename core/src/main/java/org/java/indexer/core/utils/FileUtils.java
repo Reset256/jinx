@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 @Slf4j
 public class FileUtils {
 
-    public static List<Path> listFolders(Path folderPath) {
-        final ArrayList<Path> paths = new ArrayList<>();
+    public static Set<Path> listFolders(Path folderPath) {
+        final Set<Path> paths = new HashSet<>();
 
         final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<>() {
             @Override
@@ -36,7 +36,7 @@ public class FileUtils {
         return paths;
     }
 
-    public static Set<Path> listFiles(Path folderPath, List<String> ignoredNames) {
+    public static Set<Path> listFiles(Path folderPath, Set<String> ignoredNames) {
         final Set<Path> paths = new HashSet<>();
         final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<>() {
             @Override
@@ -75,8 +75,8 @@ public class FileUtils {
         }
     }
 
-    public static Boolean isIgnoredFile(Path file, List<String> ignoredNames) {
-        return ignoredNames.stream().anyMatch(file::endsWith);
+    public static Boolean isIgnoredFile(Path file, Set<String> ignoredNames) {
+        return ignoredNames.contains(file.toString());
     }
 
 

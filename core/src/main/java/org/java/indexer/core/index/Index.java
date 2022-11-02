@@ -7,8 +7,10 @@ import org.java.indexer.core.tokenizer.Tokenizer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -25,13 +27,13 @@ public class Index {
 
     private final Tokenizer tokenizer;
     private final ConcurrentHashMap<Path, IndexedFile> indexedFiles;
-    private final List<String> ignoredNames;
+    private final Set<String> ignoredNames;
     private final Lock writeLock;
     private final Lock readLock;
 
 
     public Index(List<String> ignoredNames) {
-        this.ignoredNames = ignoredNames;
+        this.ignoredNames = new HashSet<>(ignoredNames);
         this.tokenizer = new RegexTokenizer();
         this.indexedFiles = new ConcurrentHashMap<>();
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -40,7 +42,7 @@ public class Index {
     }
 
     public Index(List<String> ignoredNames, Pattern regEx) {
-        this.ignoredNames = ignoredNames;
+        this.ignoredNames = new HashSet<>(ignoredNames);
         this.tokenizer = new RegexTokenizer(regEx);
         this.indexedFiles = new ConcurrentHashMap<>();
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();

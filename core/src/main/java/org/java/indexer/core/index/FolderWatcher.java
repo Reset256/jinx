@@ -8,7 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -20,12 +22,12 @@ public class FolderWatcher implements Runnable {
 
     private final WatchService watchService;
     private final Index index;
-    private final List<String> ignoredNames;
+    private final Set<String> ignoredNames;
 
     public FolderWatcher(WatchService watchService, Index index, List<String> ignoredNames) {
         this.watchService = watchService;
         this.index = index;
-        this.ignoredNames = ignoredNames;
+        this.ignoredNames = new HashSet<>(ignoredNames);
     }
 
     public void watchFolder(Path watchedFolder) {

@@ -33,8 +33,8 @@ public class FolderWatcherService {
     }
 
     public void watchFolders(Path folderPath) {
-        final List<Path> newFolders = FileUtils.listFolders(folderPath);
-        newFolders.stream()
+        FileUtils.listFolders(folderPath)
+                .stream()
                 .filter(o -> !watchedFolder.contains(o))
                 .peek(watchedFolder::add)
                 .forEach(folderWatcher::watchFolder);
