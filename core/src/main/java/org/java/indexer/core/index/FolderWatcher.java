@@ -63,11 +63,12 @@ public class FolderWatcher implements Runnable {
                 }
                 final Path contextPath = ((Path) key.watchable()).resolve(filename);
                 if (Files.isDirectory(contextPath)) {
-                    log.info("Event is ignored for folder {}", contextPath);
-                    continue;
+                    log.info("Event of type {} occurred with folder {}", kind, contextPath);
+                    processFolderEventWithIndex(kind, contextPath);
+                } else {
+                    log.info("Event of type {} occurred with file {}", kind, contextPath);
+                    processFileEventWithIndex(kind, contextPath);
                 }
-                log.info("Event of type {} occurred with file {}", kind, contextPath);
-                processEventWithIndex(kind, contextPath);
             }
 
             boolean valid = key.reset();
@@ -79,11 +80,20 @@ public class FolderWatcher implements Runnable {
         }
     }
 
-    private void processEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
+    private void processFileEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
         if (ENTRY_CREATE.equals(kind) || ENTRY_MODIFY.equals(kind)) {
             index.addFile(contextPath);
         } else if (ENTRY_DELETE.equals(kind)) {
             index.removeFile(contextPath);
+        }
+    }
+
+    private void processFolderEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
+        if (ENTRY_CREATE.equals(kind)) {
+            this.watchFolder(contextPath);
+            index.addFolder(contextPath);
+        } else if (ENTRY_DELETE.equals(kind)) {
+            index.removeFolder(contextPath);
         }
     }
 }

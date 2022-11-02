@@ -119,6 +119,37 @@ class IndexerTest {
     }
 
     @Test
+    public void creationOfFolderAndFile() {
+        //given
+        indexer.indexFolder(outerFolderPath);
+
+        //when
+        final String newFolderPath = outerFolderPath + SEPARATOR + "newInner";
+        final String newFilePath = newFolderPath + SEPARATOR + "newInner.txt";
+        File newFolder = new File(newFolderPath);
+        File newFile = new File(newFilePath);
+        try {
+            newFolder.mkdir();
+            newFile.createNewFile();
+            try (final FileWriter fileWriter = new FileWriter(newFile)) {
+                fileWriter.write("newOuterFile");
+            }
+            Thread.sleep(15000);
+            final QueryResult result = indexer.queryToken("newOuterFile");
+
+            //then
+            assertThat(result.getOccurrences().keySet(),
+                    containsInAnyOrder(newFilePath));
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            newFile.delete();
+            newFolder.delete();
+        }
+    }
+
+    @Test
     public void innerFolderFileCreation() {
         //given
         indexer.indexFolder(outerFolderPath);
