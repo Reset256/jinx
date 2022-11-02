@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -30,6 +32,7 @@ public class Index {
     private final Set<String> ignoredNames;
     private final Lock writeLock;
     private final Lock readLock;
+    private final ExecutorService indexExecutorService;
 
 
     public Index(List<String> ignoredNames) {
@@ -39,6 +42,7 @@ public class Index {
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         writeLock = readWriteLock.writeLock();
         readLock = readWriteLock.readLock();
+        indexExecutorService = Executors.newWorkStealingPool();
     }
 
     public Index(List<String> ignoredNames, Pattern regEx) {
@@ -48,13 +52,14 @@ public class Index {
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         writeLock = readWriteLock.writeLock();
         readLock = readWriteLock.readLock();
+        indexExecutorService = Executors.newWorkStealingPool();
     }
 
     public void addFolder(Path folderPath) {
         if (Files.isRegularFile(folderPath)) {
             throw new RuntimeException("Only folders can be added to index");
         }
-        listFiles(folderPath, ignoredNames).forEach(this::addFile);
+        listFiles(folderPath, ignoredNames).forEach(path -> indexExecutorService.submit(() -> addFile(path)));
         log.info("Folder {} added to index", folderPath);
     }
 
