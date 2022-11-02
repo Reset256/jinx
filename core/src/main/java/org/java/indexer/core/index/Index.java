@@ -67,30 +67,23 @@ public class Index {
     }
 
     void addFile(Path filePath) {
-        if (!indexedFiles.containsKey(filePath)) {
-            writeLock.lock();
-            try {
-                indexedFiles.compute(filePath,
-                        (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizer.tokenize(filePath)));
-                log.info("File {} added to index", filePath);
-            } finally {
-                writeLock.unlock();
-            }
-        } else {
-            log.info("File {}  is already in the index", filePath);
+        final Map<String, Integer> tokenizedFile = tokenizer.tokenize(filePath);
+        writeLock.lock();
+        try {
+            indexedFiles.compute(filePath,
+                    (path1, indexedFile) -> new IndexedFile(UUID.randomUUID(), filePath, tokenizedFile));
+        } finally {
+            writeLock.unlock();
         }
+        log.info("File {} is in the index", filePath);
     }
 
     void removeFile(Path filePath) {
-        if (indexedFiles.containsKey(filePath)) {
-            writeLock.lock();
-            try {
-                indexedFiles.remove(filePath);
-            } finally {
-                writeLock.unlock();
-            }
-        } else {
-            throw new RuntimeException("File is not in the index");
+        writeLock.lock();
+        try {
+            indexedFiles.remove(filePath);
+        } finally {
+            writeLock.unlock();
         }
         log.info("File {} removed from index", filePath);
     }

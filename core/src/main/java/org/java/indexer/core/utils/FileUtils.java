@@ -13,7 +13,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -34,8 +36,8 @@ public class FileUtils {
         return paths;
     }
 
-    public static List<Path> listFiles(Path folderPath, List<String> ignoredNames) {
-        final ArrayList<Path> paths = new ArrayList<>();
+    public static Set<Path> listFiles(Path folderPath, List<String> ignoredNames) {
+        final Set<Path> paths = new HashSet<>();
         final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

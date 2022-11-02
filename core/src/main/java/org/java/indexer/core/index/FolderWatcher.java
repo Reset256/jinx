@@ -78,13 +78,10 @@ public class FolderWatcher implements Runnable {
     }
 
     private void processEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
-        if (ENTRY_CREATE.equals(kind)) {
+        if (ENTRY_CREATE.equals(kind) || ENTRY_MODIFY.equals(kind)) {
             index.addFile(contextPath);
         } else if (ENTRY_DELETE.equals(kind)) {
             index.removeFile(contextPath);
-        } else if (ENTRY_MODIFY.equals(kind)) {
-            index.removeFile(contextPath);
-            index.addFile(contextPath);
         }
     }
 }
