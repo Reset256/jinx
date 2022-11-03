@@ -35,7 +35,7 @@ class IndexerTest {
     @Test
     public void indexInnerAndOuterFolder() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final QueryResult result = indexer.queryToken("dependency");
@@ -50,7 +50,7 @@ class IndexerTest {
     @Test
     public void indexInnerFolder() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final QueryResult result = indexer.queryToken("logback");
@@ -65,8 +65,8 @@ class IndexerTest {
     public void doubleDotFilePath() {
         //given
         String innerFolderDoubleDot = innerFolderPath + SEPARATOR + ".." + SEPARATOR + "inner";
-        indexer.indexFolder(innerFolderPath);
-        indexer.indexFolder(innerFolderDoubleDot);
+        indexer.index(List.of(innerFolderPath));
+        indexer.index(List.of(innerFolderDoubleDot));
 
         //when
         final QueryResult result = indexer.queryToken("logback");
@@ -81,7 +81,7 @@ class IndexerTest {
     @Test
     public void indexOuterFolder() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final QueryResult result = indexer.queryToken("classic1");
@@ -94,7 +94,7 @@ class IndexerTest {
     @Test
     public void outerFolderFileCreation() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final String newFilePath = outerFolderPath + SEPARATOR + "outer.txt";
@@ -121,7 +121,7 @@ class IndexerTest {
     @Test
     public void creationOfFolderAndFile() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final String newFolderPath = outerFolderPath + SEPARATOR + "newInner";
@@ -152,7 +152,7 @@ class IndexerTest {
     @Test
     public void innerFolderFileCreation() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final String newFilePath = innerFolderPath + SEPARATOR + "inner.txt";
@@ -180,7 +180,7 @@ class IndexerTest {
     @SneakyThrows
     public void outerFolderFileChange() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final String filePath = outerFolderPath + SEPARATOR + "abl.bla";
@@ -210,7 +210,7 @@ class IndexerTest {
     @SneakyThrows
     public void innerFolderFileChange() {
         //given
-        indexer.indexFolder(outerFolderPath);
+        indexer.index(List.of(outerFolderPath));
 
         //when
         final String filePath = innerFolderPath + SEPARATOR + "bla.bla";

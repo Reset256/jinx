@@ -4,9 +4,7 @@ import org.java.indexer.core.Indexer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -24,7 +22,7 @@ public class IndexerWithCustomRegEx {
 
         //when
         final Indexer indexer = new Indexer(List.of(".DS_Store"), regEx);
-        indexer.indexFolder(FOLDER_PATH);
+        indexer.index(List.of(FOLDER_PATH));
         final QueryResult result = indexer.queryToken("custom");
 
         //then

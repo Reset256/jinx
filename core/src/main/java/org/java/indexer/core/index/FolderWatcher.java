@@ -1,6 +1,7 @@
 package org.java.indexer.core.index;
 
 import lombok.extern.slf4j.Slf4j;
+import org.java.indexer.core.utils.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,8 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -23,20 +27,66 @@ public class FolderWatcher implements Runnable {
     private final WatchService watchService;
     private final Index index;
     private final Set<String> ignoredNames;
+    private final Map<Path, Set<Path>> watchedPaths;
 
     public FolderWatcher(WatchService watchService, Index index, List<String> ignoredNames) {
         this.watchService = watchService;
         this.index = index;
         this.ignoredNames = new HashSet<>(ignoredNames);
+        this.watchedPaths = new HashMap<>();
     }
 
-    public void watchFolder(Path watchedFolder) {
-        log.info("Folder {} added to watch service", watchedFolder);
+    public void watch(Path path) {
+        if (Files.isRegularFile(path)) {
+            watchFile(path);
+        } else {
+            watchFolderRecursively(path);
+        }
+    }
+
+    private void watchFolderRecursively(Path path) {
+        FileUtils.listFolders(path).forEach(this::watchFolder);
+    }
+
+
+    private void watchFolder(Path path) {
+        if (!watchedPaths.containsKey(path) || !watchedPaths.get(path).isEmpty()) {
+            watchedPaths.put(path, Collections.emptySet());
+            watchWithEvents(path, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            log.info("Folder {} added to watch service", path);
+        } else {
+            log.info("Folder {} is already in the watch service", path);
+        }
+    }
+
+    private void removeFolder(Path path) {
+        watchedPaths.remove(path);
+    }
+
+    private void watchFile(Path path) {
+        final Path folderPath = path.getParent();
+        if (watchedPaths.containsKey(folderPath)) {
+            final Set<Path> filesPaths = watchedPaths.get(folderPath);
+            if (filesPaths.isEmpty() || filesPaths.contains(path)) {
+                log.info("File {} is already in the watch service", path);
+            } else {
+                filesPaths.add(path);
+                log.info("File {} added to watch service", path);
+            }
+        } else {
+            final HashSet<Path> filesPaths = new HashSet<>();
+            filesPaths.add(path);
+            watchedPaths.put(folderPath, filesPaths);
+            watchWithEvents(folderPath, ENTRY_DELETE, ENTRY_MODIFY);
+            log.info("File {} added to watch service", path);
+        }
+    }
+
+    private void watchWithEvents(Path path, WatchEvent.Kind<Path>... events) {
         try {
-            watchedFolder.register(watchService, ENTRY_CREATE,
-                    ENTRY_DELETE, ENTRY_MODIFY);
+            path.register(watchService, events);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Folder watcher cannot be registered", e);
         }
     }
 
@@ -81,18 +131,38 @@ public class FolderWatcher implements Runnable {
     }
 
     private void processFileEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
-        if (ENTRY_CREATE.equals(kind) || ENTRY_MODIFY.equals(kind)) {
-            index.addFile(contextPath);
-        } else if (ENTRY_DELETE.equals(kind)) {
-            index.removeFile(contextPath);
+        final Path folderName = contextPath.getParent();
+        if (watchedPaths.containsKey(folderName)) {
+            final Set<Path> pathSet = watchedPaths.get(folderName);
+            if (ENTRY_CREATE.equals(kind)) {
+                if (pathSet.isEmpty()) {
+                    index.addFile(contextPath);
+                }
+            } else if (ENTRY_MODIFY.equals(kind)) {
+                if (pathSet.isEmpty() || pathSet.contains(contextPath)) {
+                    index.addFile(contextPath);
+                }
+            } else {
+                if (ENTRY_DELETE.equals(kind)) {
+                    if (pathSet.isEmpty()) {
+                        index.removeFile(contextPath);
+                    } else if (pathSet.contains(contextPath)) {
+                        index.removeFile(contextPath);
+                        if (pathSet.remove(contextPath) && pathSet.isEmpty()) {
+                            watchedPaths.remove(folderName);
+                        }
+                    }
+                }
+            }
         }
     }
 
     private void processFolderEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {
         if (ENTRY_CREATE.equals(kind)) {
-            this.watchFolder(contextPath);
-            index.addFolder(contextPath);
+            this.watch(contextPath);
+            index.add(contextPath);
         } else if (ENTRY_DELETE.equals(kind)) {
+            this.removeFolder(contextPath);
             index.removeFolder(contextPath);
         }
     }

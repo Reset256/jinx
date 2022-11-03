@@ -55,12 +55,14 @@ public class Index {
         indexExecutorService = Executors.newWorkStealingPool();
     }
 
-    public void addFolder(Path folderPath) {
-        if (Files.isRegularFile(folderPath)) {
-            throw new RuntimeException("Only folders can be added to index");
+    public void add(Path path) {
+        if (Files.isRegularFile(path)) {
+            indexExecutorService.submit(() -> addFile(path));
+            log.info("File {} added to index", path);
+        } else {
+            listFiles(path, ignoredNames).forEach(filePath -> indexExecutorService.submit(() -> addFile(filePath)));
+            log.info("Folder {} added to index", path);
         }
-        listFiles(folderPath, ignoredNames).forEach(path -> indexExecutorService.submit(() -> addFile(path)));
-        log.info("Folder {} added to index", folderPath);
     }
 
     void removeFolder(Path folderPath) {

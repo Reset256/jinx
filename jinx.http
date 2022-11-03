@@ -3,7 +3,7 @@ POST localhost:8085/index
 Content-Type: application/json
 
 {
-  "path": "/Users/victor/Downloads/temp/jinx",
+  "paths": ["/Users/victor/Downloads/temp/jinx"],
   "regEx" : "\\s+",
   "ignoredNames": [
     ".DS_Store"
@@ -15,7 +15,26 @@ POST localhost:8085/index
 Content-Type: application/json
 
 {
-  "path": "/Users/victor/Downloads/temp/jinx",
+  "paths": ["/Users/victor/Downloads/temp/jinx/inner","/Users/victor/Downloads/temp/jinx/inner/bla.bla",
+    "/Users/victor/Downloads/temp/jinx/runnerw.rc", "/Users/victor/Downloads/temp/jinx/abl.bla"]
+}
+
+###
+POST localhost:8085/index
+Content-Type: application/json
+
+{
+  "paths": ["/Users/victor/IdeaProjects/intellij-community"],
+  "ignoredNames": [
+    ".DS_Store"
+  ]
+}
+###
+POST localhost:8085/index
+Content-Type: application/json
+
+{
+  "paths": ["/Users/victor/IdeaProjects/linux"],
   "ignoredNames": [
     ".DS_Store"
   ]

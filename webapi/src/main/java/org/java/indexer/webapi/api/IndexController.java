@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,15 +23,15 @@ public class IndexController {
     @PostMapping
     @SuppressWarnings({"unchecked"})
     public ResponseEntity<?> index(@RequestBody Map<String, Object> body) {
-        final String path = (String) body.get("path");
-        final List<String> ignoredNames = (List<String>) body.get("ignoredNames");
+        final List<String> paths = (List<String>) body.get("paths");
+        final List<String> ignoredNames = Optional.ofNullable((List<String>) body.get("ignoredNames")).orElse(Collections.emptyList());
 
         indexer = Optional.ofNullable(body.get("regEx"))
                 .map(o -> (String) o)
                 .map(s -> new Indexer(ignoredNames, s))
                 .orElseGet(() -> new Indexer(ignoredNames));
 
-        indexer.indexFolder(path);
+        indexer.index(paths);
         return ResponseEntity.ok().build();
     }
 

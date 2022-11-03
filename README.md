@@ -4,7 +4,7 @@ Text indexing library. To use it you should add folder you want to index via POS
 
 Files are tokenized word by word. To add your own tokenization algorithm implement `Tokenizer.class` interface.  
 
-To look for token use GET request to `localhost:8085/index`.
+Usage examples are in `jinx.http` file.
 
 # Start
 
@@ -16,9 +16,7 @@ There are several ways to start this app:
 # Improvements to do:
 
 - WatchService and it's duplicate events
-- Way to add separate files to index
 - Way to remove folders and files from index
 - Parallel write access to index
-- More available tokenization algorithms and ability to add your own regex for tokenization rules 
 - Inject properties from `application.properties`
 - Modify query API to request type with body for querying not only letters  

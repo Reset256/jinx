@@ -25,10 +25,12 @@ public class Indexer {
         this.folderWatcherService = new FolderWatcherService(ignoredNames, index);
     }
 
-    public void indexFolder(String path) {
-        final Path folderPath = Paths.get(path).normalize();
-        index.addFolder(folderPath);
-        folderWatcherService.watchFolders(folderPath);
+    public void index(List<String> paths) {
+        paths.forEach(path -> {
+            final Path normalizedPath = Paths.get(path).normalize();
+            index.add(normalizedPath);
+            folderWatcherService.watch(normalizedPath);
+        });
     }
 
     public QueryResult queryToken(String token) {
