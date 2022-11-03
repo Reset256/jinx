@@ -1,6 +1,6 @@
 package org.java.indexer.core.index;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.java.indexer.core.utils.FileUtils;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static org.java.indexer.core.utils.FileUtils.isIgnoredFile;
 
-@Log
+@Slf4j
 public class FolderWatcher implements Runnable {
 
     private final WatchService watchService;
@@ -53,9 +53,9 @@ public class FolderWatcher implements Runnable {
         if (!watchedPaths.containsKey(path) || !watchedPaths.get(path).isEmpty()) {
             watchedPaths.put(path, Collections.emptySet());
             watchWithEvents(path, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            log.info(String.format("Folder %s added to watch service", path));
+            log.info("Folder {} added to watch service", path);
         } else {
-            log.info(String.format("Folder %s is already in the watch service", path));
+            log.info("Folder {} is already in the watch service", path);
         }
     }
 
@@ -68,17 +68,17 @@ public class FolderWatcher implements Runnable {
         if (watchedPaths.containsKey(folderPath)) {
             final Set<Path> filesPaths = watchedPaths.get(folderPath);
             if (filesPaths.isEmpty() || filesPaths.contains(path)) {
-                log.info(String.format("File %s is already in the watch service", path));
+                log.info("File {} is already in the watch service", path);
             } else {
                 filesPaths.add(path);
-                log.info(String.format("File %s added to watch service", path));
+                log.info("File {} added to watch service", path);
             }
         } else {
             final HashSet<Path> filesPaths = new HashSet<>();
             filesPaths.add(path);
             watchedPaths.put(folderPath, filesPaths);
             watchWithEvents(folderPath, ENTRY_DELETE, ENTRY_MODIFY);
-            log.info(String.format("File %s added to watch service", path));
+            log.info("File {} added to watch service", path);
         }
     }
 
@@ -86,7 +86,7 @@ public class FolderWatcher implements Runnable {
         try {
             path.register(watchService, events);
         } catch (IOException e) {
-            log.severe(String.format("Folder watcher cannot be registered", e));
+            log.error("Folder watcher cannot be registered", e);
         }
     }
 
@@ -108,15 +108,15 @@ public class FolderWatcher implements Runnable {
                 final WatchEvent.Kind<Path> kind = pathEvent.kind();
                 final Path filename = pathEvent.context();
                 if (isIgnoredFile(filename, ignoredNames)) {
-                    log.info(String.format("Event is ignored for file %s", filename));
+                    log.info("Event is ignored for file {}", filename);
                     continue;
                 }
                 final Path contextPath = ((Path) key.watchable()).resolve(filename);
                 if (Files.isDirectory(contextPath)) {
-                    log.info(String.format("Event of type %s occurred with folder %s", kind, contextPath));
+                    log.info("Event of type {} occurred with folder {}", kind, contextPath);
                     processFolderEventWithIndex(kind, contextPath);
                 } else {
-                    log.info(String.format("Event of type %s occurred with file %s", kind, contextPath));
+                    log.info("Event of type {} occurred with file {}", kind, contextPath);
                     processFileEventWithIndex(kind, contextPath);
                 }
             }
@@ -125,7 +125,7 @@ public class FolderWatcher implements Runnable {
             if (!valid) {
                 Path watchedFolder = (Path) key.watchable();
                 index.removeFolder(watchedFolder);
-                log.info(String.format("Token is invalid, folder %s is not being watched anymore", watchedFolder));
+                log.info("Token is invalid, folder {} is not being watched anymore", watchedFolder);
             }
         }
     }

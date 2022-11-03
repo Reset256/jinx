@@ -1,6 +1,6 @@
 package org.java.indexer.core.tokenizer;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -17,7 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.java.indexer.core.utils.FileUtils.parseAndConsume;
 
-@Log
+@Slf4j
 public class RegexTokenizer implements Tokenizer {
 
     private static final String DEFAULT_REGEX = "[^A-Za-z0-9_А-яЁё]";
@@ -45,10 +45,10 @@ public class RegexTokenizer implements Tokenizer {
         for (Charset encoding : SUPPORTED_ENCODINGS) {
             try {
                 parseAndConsume(path, resultAggregator, encoding, regEx);
-                log.info(String.format("File %s parsed with %s encoding", path, encoding.name()));
+                log.info("File {} parsed with {} encoding", path, encoding.name());
                 break;
             } catch (IOException e) {
-                log.severe(String.format("File %s cannot be parsed with %s encoding", path, encoding.name()));
+                log.error("File {} cannot be parsed with {} encoding", path, encoding.name());
             }
         }
 
