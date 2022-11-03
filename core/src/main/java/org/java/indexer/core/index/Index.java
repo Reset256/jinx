@@ -1,6 +1,6 @@
 package org.java.indexer.core.index;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.java.Log;
 import org.java.indexer.core.tokenizer.RegexTokenizer;
 import org.java.indexer.core.tokenizer.Tokenizer;
 
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import static org.java.indexer.core.utils.FileUtils.listFiles;
 
-@Slf4j
+@Log
 public class Index {
 
     private final Tokenizer tokenizer;
@@ -58,10 +58,10 @@ public class Index {
     public void add(Path path) {
         if (Files.isRegularFile(path)) {
             indexExecutorService.submit(() -> addFile(path));
-            log.info("File {} added to index", path);
+            log.info(String.format("File %s added to index", path));
         } else {
             listFiles(path, ignoredNames).forEach(filePath -> indexExecutorService.submit(() -> addFile(filePath)));
-            log.info("Folder {} added to index", path);
+            log.info(String.format("Folder %s added to index", path));
         }
     }
 
@@ -72,7 +72,7 @@ public class Index {
         } finally {
             writeLock.unlock();
         }
-        log.info("Folder {} removed from index", folderPath);
+        log.info(String.format("Folder %s removed from index", folderPath));
     }
 
     void addFile(Path filePath) {
@@ -84,7 +84,7 @@ public class Index {
         } finally {
             writeLock.unlock();
         }
-        log.info("File {} is in the index", filePath);
+        log.info(String.format("File %s is in the index", filePath));
     }
 
     void removeFile(Path filePath) {
@@ -94,11 +94,11 @@ public class Index {
         } finally {
             writeLock.unlock();
         }
-        log.info("File {} removed from index", filePath);
+        log.info(String.format("File %s removed from index", filePath));
     }
 
     public QueryResult queryToken(String token) {
-        log.info("Looking for token \"{}\" in the index", token);
+        log.info(String.format("Looking for token \"%s\" in the index", token));
         try {
             if (readLock.tryLock(5, TimeUnit.SECONDS)) {
                 final Map<String, Integer> occurrenceMap = indexedFiles.values().stream()
