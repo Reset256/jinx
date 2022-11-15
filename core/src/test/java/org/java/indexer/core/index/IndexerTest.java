@@ -32,12 +32,14 @@ class IndexerTest {
         indexer = new Indexer(List.of(".DS_Store"));
     }
 
+    @SneakyThrows
     @Test
     public void indexInnerAndOuterFolder() {
         //given
         indexer.index(List.of(outerFolderPath));
 
         //when
+        Thread.sleep(1000);
         final QueryResult result = indexer.queryToken("dependency");
 
         //then
@@ -47,12 +49,14 @@ class IndexerTest {
         );
     }
 
+    @SneakyThrows
     @Test
     public void indexInnerFolder() {
         //given
         indexer.index(List.of(outerFolderPath));
 
         //when
+        Thread.sleep(1000);
         final QueryResult result = indexer.queryToken("logback");
 
         //then
@@ -61,6 +65,7 @@ class IndexerTest {
     }
 
 
+    @SneakyThrows
     @Test
     public void doubleDotFilePath() {
         //given
@@ -69,6 +74,7 @@ class IndexerTest {
         indexer.index(List.of(innerFolderDoubleDot));
 
         //when
+        Thread.sleep(1000);
         final QueryResult result = indexer.queryToken("logback");
 
         //then
@@ -78,12 +84,14 @@ class IndexerTest {
 
     }
 
+    @SneakyThrows
     @Test
     public void indexOuterFolder() {
         //given
         indexer.index(List.of(outerFolderPath));
 
         //when
+        Thread.sleep(1000);
         final QueryResult result = indexer.queryToken("classic1");
 
         //then

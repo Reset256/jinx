@@ -3,11 +3,13 @@ package org.java.indexer.core;
 import org.java.indexer.core.index.FolderWatcherService;
 import org.java.indexer.core.index.Index;
 import org.java.indexer.core.index.QueryResult;
+import org.java.indexer.core.tokenizer.Tokenizer;
 import org.java.indexer.core.utils.RegExUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 public class Indexer {
 
@@ -22,6 +24,12 @@ public class Indexer {
     public Indexer(List<String> ignoredNames, String regEx) {
         this.index = new Index(ignoredNames, RegExUtils.validateRegEx(regEx)
                 .orElseThrow(() -> new RuntimeException("Regular expression is not valid and cannot be used as part of tokenization algorithm")));
+        this.folderWatcherService = new FolderWatcherService(ignoredNames, index);
+    }
+
+    public Indexer(List<String> ignoredNames, Tokenizer tokenizer) {
+        this.index = new Index(ignoredNames, Optional.ofNullable(tokenizer)
+                .orElseThrow(() -> new RuntimeException("Tokenizer cannot be null")));
         this.folderWatcherService = new FolderWatcherService(ignoredNames, index);
     }
 

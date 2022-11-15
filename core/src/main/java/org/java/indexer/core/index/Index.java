@@ -7,6 +7,7 @@ import org.java.indexer.core.tokenizer.Tokenizer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,16 @@ public class Index {
         indexExecutorService = Executors.newWorkStealingPool();
     }
 
+    public Index(List<String> ignoredNames, Tokenizer tokenizer) {
+        this.ignoredNames = new HashSet<>(ignoredNames);
+        this.tokenizer = tokenizer;
+        this.indexedFiles = new ConcurrentHashMap<>();
+        final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+        writeLock = readWriteLock.writeLock();
+        readLock = readWriteLock.readLock();
+        indexExecutorService = Executors.newWorkStealingPool();
+    }
+
     public void add(Path path) {
         if (Files.isRegularFile(path)) {
             indexExecutorService.submit(() -> addFile(path));
@@ -76,7 +87,13 @@ public class Index {
     }
 
     void addFile(Path filePath) {
-        final Map<String, Integer> tokenizedFile = tokenizer.tokenize(filePath);
+        final Map<String, Integer> tokenizedFile;
+        try {
+            tokenizedFile = tokenizer.tokenize(filePath);
+        } catch (Exception e) {
+            log.error("Something went wrong during tokenization, file {} was not indexed", filePath, e);
+            return;
+        }
         writeLock.lock();
         try {
             indexedFiles.compute(filePath,
