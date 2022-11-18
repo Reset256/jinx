@@ -3,13 +3,13 @@ package org.java.indexer.core.index;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 public class FolderWatcherService {
 
     private final FolderWatcher folderWatcher;
 
-    public FolderWatcherService(List<String> ignoredNames, Index index) {
+    public FolderWatcherService(Collection<String> ignoredNames, Index index) {
         try {
             folderWatcher = new FolderWatcher(FileSystems.getDefault().newWatchService(), index, ignoredNames);
         } catch (IOException e) {

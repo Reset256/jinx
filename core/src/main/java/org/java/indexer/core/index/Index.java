@@ -7,8 +7,9 @@ import org.java.indexer.core.tokenizer.Tokenizer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -35,8 +36,12 @@ public class Index {
     private final ExecutorService indexExecutorService;
 
 
-    public Index(List<String> ignoredNames) {
-        this.ignoredNames = new HashSet<>(ignoredNames);
+    public Index(Collection<String> ignoredNames) {
+        if (ignoredNames == null || ignoredNames.isEmpty()) {
+            this.ignoredNames = Collections.emptySet();
+        } else {
+            this.ignoredNames = new HashSet<>(ignoredNames);
+        }
         this.tokenizer = new RegexTokenizer();
         this.indexedFiles = new ConcurrentHashMap<>();
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -45,8 +50,12 @@ public class Index {
         indexExecutorService = Executors.newWorkStealingPool();
     }
 
-    public Index(List<String> ignoredNames, Pattern regEx) {
-        this.ignoredNames = new HashSet<>(ignoredNames);
+    public Index(Collection<String> ignoredNames, Pattern regEx) {
+        if (ignoredNames == null || ignoredNames.isEmpty()) {
+            this.ignoredNames = Collections.emptySet();
+        } else {
+            this.ignoredNames = new HashSet<>(ignoredNames);
+        }
         this.tokenizer = new RegexTokenizer(regEx);
         this.indexedFiles = new ConcurrentHashMap<>();
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -55,8 +64,12 @@ public class Index {
         indexExecutorService = Executors.newWorkStealingPool();
     }
 
-    public Index(List<String> ignoredNames, Tokenizer tokenizer) {
-        this.ignoredNames = new HashSet<>(ignoredNames);
+    public Index(Collection<String> ignoredNames, Tokenizer tokenizer) {
+        if (ignoredNames == null || ignoredNames.isEmpty()) {
+            this.ignoredNames = Collections.emptySet();
+        } else {
+            this.ignoredNames = new HashSet<>(ignoredNames);
+        }
         this.tokenizer = tokenizer;
         this.indexedFiles = new ConcurrentHashMap<>();
         final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();

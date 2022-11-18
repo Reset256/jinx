@@ -9,10 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,10 +32,14 @@ public class FolderWatcher implements Runnable {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    public FolderWatcher(WatchService watchService, Index index, List<String> ignoredNames) {
+    public FolderWatcher(WatchService watchService, Index index, Collection<String> ignoredNames) {
         this.watchService = watchService;
         this.index = index;
-        this.ignoredNames = new HashSet<>(ignoredNames);
+        if (ignoredNames == null || ignoredNames.isEmpty()) {
+            this.ignoredNames = Collections.emptySet();
+        } else {
+            this.ignoredNames = new HashSet<>(ignoredNames);
+        }
         this.watchedPaths = new HashMap<>();
     }
 
