@@ -7,7 +7,6 @@ import org.java.indexer.core.tokenizer.Tokenizer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +129,15 @@ public class Index {
             throw new RuntimeException(e);
         } finally {
             readLock.unlock();
+        }
+    }
+
+    public void clear() {
+        writeLock.lock();
+        try {
+            indexedFiles.clear();
+        } finally {
+            writeLock.unlock();
         }
     }
 

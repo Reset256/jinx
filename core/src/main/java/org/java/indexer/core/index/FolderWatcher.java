@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -28,6 +29,8 @@ public class FolderWatcher implements Runnable {
     private final Index index;
     private final Set<String> ignoredNames;
     private final Map<Path, Set<Path>> watchedPaths;
+
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
     public FolderWatcher(WatchService watchService, Index index, List<String> ignoredNames) {
         this.watchService = watchService;
@@ -94,13 +97,16 @@ public class FolderWatcher implements Runnable {
     @Override
     @SuppressWarnings({"SleepWhileInLoop", "unchecked"})
     public void run() {
-        while (true) {
+        running.set(true);
+        while (running.get()) {
             WatchKey key;
             try {
                 key = watchService.take();
                 Thread.sleep(50);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                log.info("FolderWatcher is stopped");
+                running.set(false);
+                continue;
             }
 
             for (WatchEvent<?> event : key.pollEvents()) {
@@ -128,6 +134,10 @@ public class FolderWatcher implements Runnable {
                 log.info("Token is invalid, folder {} is not being watched anymore", watchedFolder);
             }
         }
+    }
+
+    public void stop() {
+        running.set(false);
     }
 
     private void processFileEventWithIndex(WatchEvent.Kind<Path> kind, Path contextPath) {

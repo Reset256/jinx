@@ -35,13 +35,23 @@ public class Indexer {
 
     public void index(List<String> paths) {
         paths.forEach(path -> {
-            final Path normalizedPath = Paths.get(path).normalize();
+            Path normalizedPath;
+            try {
+                normalizedPath = Paths.get(path).normalize();
+            } catch (InvalidPathException e) {
+                log.error("Path {} is not valid", path, e);
+                return;
+            }
             index.add(normalizedPath);
             folderWatcherService.watch(normalizedPath);
         });
     }
 
     public QueryResult queryToken(String token) {
-        return index.queryToken(token);
+        if (token != null && !token.isEmpty()) {
+            return index.queryToken(token);
+        } else {
+            throw new IllegalArgumentException("Token should not be null or empty");
+        }
     }
 }

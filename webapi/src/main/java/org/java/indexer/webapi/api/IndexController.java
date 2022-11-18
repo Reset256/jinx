@@ -2,6 +2,7 @@ package org.java.indexer.webapi.api;
 
 import org.java.indexer.core.Indexer;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,8 +36,14 @@ public class IndexController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{token}")
+    @GetMapping("/query/{token}")
     public ResponseEntity<?> queryToken(@PathVariable String token) {
         return ResponseEntity.ok(indexer.queryToken(token));
+    }
+
+    @DeleteMapping
+    public void stopIndex() {
+        indexer.close();
+        indexer = null;
     }
 }

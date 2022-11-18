@@ -74,7 +74,7 @@ public class FileUtils {
     }
 
     public static Boolean isIgnoredFile(Path file, Set<String> ignoredNames) {
-        return ignoredNames.contains(file.toString());
+        return ignoredNames.contains(file.getFileName().toString());
     }
 
 

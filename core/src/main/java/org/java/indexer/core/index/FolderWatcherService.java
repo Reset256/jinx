@@ -23,4 +23,8 @@ public class FolderWatcherService {
     public void watch(Path path) {
         folderWatcher.watch(path);
     }
+
+    public void stop() {
+        folderWatcher.stop();
+    }
 }

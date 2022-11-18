@@ -1,4 +1,4 @@
-###
+### CREATE INDEX WITH CUSTOM REGEX
 POST localhost:8085/index
 Content-Type: application/json
 
@@ -10,7 +10,7 @@ Content-Type: application/json
   ]
 }
 
-###
+### CREATE INDEX WITH MULTIPLE PATHS
 POST localhost:8085/index
 Content-Type: application/json
 
@@ -19,30 +19,9 @@ Content-Type: application/json
     "/Users/victor/Downloads/temp/jinx/runnerw.rc", "/Users/victor/Downloads/temp/jinx/abl.bla"]
 }
 
-###
-POST localhost:8085/index
-Content-Type: application/json
 
-{
-  "paths": ["/Users/victor/IdeaProjects/intellij-community"],
-  "ignoredNames": [
-    ".DS_Store"
-  ]
-}
-###
-POST localhost:8085/index
-Content-Type: application/json
+### DELETE INDEX
+DELETE localhost:8085/index
 
-{
-  "paths": ["/Users/victor/IdeaProjects/linux"],
-  "ignoredNames": [
-    ".DS_Store"
-  ]
-}
-
-
-###
-GET localhost:8085/index/dependency
-
-###
-GET localhost:8085/index/Hello
+### QUERY TOKEN FROM INDEX
+GET localhost:8085/index/query/dependency
