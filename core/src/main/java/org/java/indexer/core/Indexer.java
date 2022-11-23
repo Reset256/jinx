@@ -14,12 +14,14 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
 
 /**
  * Instance of index. Indexer object should be reachable as long as index is needed.
  * Before letting indexer be collected by GC {@link Indexer#close} should be invoked.
+ * Another option is to use Indexer via try-with-resources.
  *
  * <p> <b>Usage Examples:</b>
  *
@@ -42,10 +44,18 @@ import static java.util.Collections.emptyList;
  * indexer.close();
  * indexer = null;
  * </pre>
- */
+ *
+ * <p>Try-with-resources option.
+ * <pre>
+ * try (Indexer indexer = new Indexer()) {
+ *     indexer.index(List.of("/path/to/folder"));
+ *     indexer.queryToken("token1");
+ * }
+ * </pre>
+ **/
 
 @Slf4j
-public class Indexer {
+public class Indexer implements AutoCloseable {
 
     private final Index index;
     private final FolderWatcherService folderWatcherService;
@@ -75,11 +85,12 @@ public class Indexer {
 
     /**
      * Empty index initialization. Index will use RegexTokenizer with provided regular expression as tokenizer.
-     *
+     * File will split line by line around matches of given pattern using {@link  Pattern#split}.
      * @param ignoredNames collection of ignored filenames. Files with the names contained in that collection will not be indexed. Might be null or empty.
      * @param regEx        String representation of regular expression
      * @throws RuntimeException in case of invalid regular expression
      * @see RegexTokenizer
+     * @see Pattern#split
      */
 
     public Indexer(Collection<String> ignoredNames, String regEx) {

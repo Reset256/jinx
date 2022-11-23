@@ -4,9 +4,16 @@ Text indexing Java application. Every file you create in the watched
 folder will be added to index as well, removed files also removed from index, changed files 
 reindexed completely. Reindexation delay is around 15 seconds.
 
-Files are tokenized word by word by default. Customization available 
-via adding regex or using your own tokenization algorithm by implementing
-`Tokenizer.class` interface and passing it to `Indexer.class` constructor.  
+Customization available via:
+- using your own tokenization algorithm by implementing
+  `Tokenizer.class` interface and passing it to `Indexer.class` constructor  
+- adding custom regex
+
+Regular expression tokenization basically splits given file line by line around matches of given pattern.
+If this pattern does not match any subsequence of the line then the resulting token will be the whole line.
+See `Pattern::split` for more details.
+
+Default pattern is `[^A-Za-z0-9_А-яЁё]`.
 
 # Use as web app 
 
@@ -78,6 +85,15 @@ indexer.close();
 indexer = null;
 ```
 
+Also `Indexer` implements `AutoCloseable` interface and can be used via try-with-resources.
+
+```java
+try (Indexer indexer = new Indexer()) {
+    indexer.index(List.of("/path/to/folder"));
+    indexer.queryToken("token1");
+} 
+```
+
 # Improvements to do:
 
 - WatchService and it's duplicate events
@@ -86,4 +102,5 @@ indexer = null;
 - Inject properties from `application.properties`
 - Modify query API to request type with body for querying not only letters  
 - Develop way to remove files from watchService in case of failed indexing
-- Shutting down tokenization process after upon index closing.
+- Shutting down tokenization process upon index closing.
+- Passing regex as whitelist/blacklist filter

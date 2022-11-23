@@ -1,5 +1,6 @@
 package org.java.indexer.core.index;
 
+import lombok.SneakyThrows;
 import org.java.indexer.core.Indexer;
 import org.junit.jupiter.api.Test;
 
@@ -10,11 +11,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class IndexerWithCustomRegEx {
+public class IndexerWithCustomRegExTest {
 
     private static final String separator = FileSystems.getDefault().getSeparator();
-    private static final String FOLDER_PATH = IndexerWithCustomRegEx.class.getResource(separator + "jinx").getPath();
+    private static final String FOLDER_PATH = IndexerWithCustomRegExTest.class.getResource(separator + "jinx").getPath();
 
+    @SneakyThrows
     @Test
     void indexWithValidRegEx() {
         //given
@@ -23,6 +25,8 @@ public class IndexerWithCustomRegEx {
         //when
         final Indexer indexer = new Indexer(List.of(".DS_Store"), regEx);
         indexer.index(List.of(FOLDER_PATH));
+        Thread.sleep(1000);
+
         final QueryResult result = indexer.queryToken("custom");
 
         //then
