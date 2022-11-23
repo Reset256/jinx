@@ -11,7 +11,7 @@ Customization available via:
 
 Regular expression tokenization basically splits given file line by line around matches of given pattern.
 If this pattern does not match any subsequence of the line then the resulting token will be the whole line.
-See `Pattern::split` for more details.
+See `Pattern#split` for more details.
 
 Default pattern is `[^A-Za-z0-9_А-яЁё]`.
 
@@ -96,7 +96,7 @@ try (Indexer indexer = new Indexer()) {
 
 # Improvements to do:
 
-- WatchService and it's duplicate events
+- WatchService and it's duplicate events / WatchService and it's lost events
 - Way to remove folders and files from index via Indexer
 - Parallel write access to index
 - Inject properties from `application.properties`

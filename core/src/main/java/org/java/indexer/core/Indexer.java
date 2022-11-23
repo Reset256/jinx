@@ -85,7 +85,7 @@ public class Indexer implements AutoCloseable {
 
     /**
      * Empty index initialization. Index will use RegexTokenizer with provided regular expression as tokenizer.
-     * File will split line by line around matches of given pattern using {@link  Pattern#split}.
+     * File will be split line by line around matches of given pattern using {@link  Pattern#split}.
      * @param ignoredNames collection of ignored filenames. Files with the names contained in that collection will not be indexed. Might be null or empty.
      * @param regEx        String representation of regular expression
      * @throws RuntimeException in case of invalid regular expression

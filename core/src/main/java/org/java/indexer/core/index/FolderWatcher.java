@@ -117,15 +117,15 @@ public class FolderWatcher implements Runnable {
                 WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
                 final WatchEvent.Kind<Path> kind = pathEvent.kind();
                 final Path filename = pathEvent.context();
-                if (isIgnoredFile(filename, ignoredNames)) {
-                    log.info("Event is ignored for file {}", filename);
-                    continue;
-                }
                 final Path contextPath = ((Path) key.watchable()).resolve(filename);
-                if (Files.isDirectory(contextPath)) {
+                if (Files.isDirectory(contextPath) || watchedPaths.containsKey(contextPath)) {
                     log.info("Event of type {} occurred with folder {}", kind, contextPath);
                     processFolderEventWithIndex(kind, contextPath);
                 } else {
+                    if (isIgnoredFile(filename, ignoredNames)) {
+                        log.info("Event is ignored for file {}", filename);
+                        continue;
+                    }
                     log.info("Event of type {} occurred with file {}", kind, contextPath);
                     processFileEventWithIndex(kind, contextPath);
                 }
@@ -134,6 +134,7 @@ public class FolderWatcher implements Runnable {
             boolean valid = key.reset();
             if (!valid) {
                 Path watchedFolder = (Path) key.watchable();
+                this.removeFolder(watchedFolder);
                 index.removeFolder(watchedFolder);
                 log.info("Token is invalid, folder {} is not being watched anymore", watchedFolder);
             }

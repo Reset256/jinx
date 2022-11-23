@@ -1,23 +1,32 @@
 package org.java.indexer.core.index;
 
 import lombok.SneakyThrows;
+import org.awaitility.Awaitility;
 import org.java.indexer.core.Indexer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.java.indexer.core.TestFilesUtils.appendNewLineToFile;
+import static org.java.indexer.core.TestFilesUtils.createFile;
+import static org.java.indexer.core.TestFilesUtils.createFolderAndFile;
+import static org.java.indexer.core.TestFilesUtils.deleteFiles;
+import static org.java.indexer.core.TestFilesUtils.moveFile;
+import static org.java.indexer.core.TestFilesUtils.readContent;
+import static org.java.indexer.core.TestFilesUtils.rename;
+import static org.java.indexer.core.TestFilesUtils.rewriteFileContent;
 
 class IndexerTest {
 
@@ -27,220 +36,143 @@ class IndexerTest {
 
     private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
 
+    @BeforeAll
+    public static void beforeAll() {
+        Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
+        Awaitility.setDefaultPollDelay(Duration.ofMillis(100));
+        Awaitility.setDefaultTimeout(Duration.ofMinutes(1));
+    }
+
     @BeforeEach
     public void beforeEach() {
         indexer = new Indexer(List.of(".DS_Store"));
     }
-
-    @SneakyThrows
-    @Test
-    public void indexInnerAndOuterFolder() {
-        //given
-        indexer.index(List.of(outerFolderPath));
-
-        //when
-        Thread.sleep(1000);
-        final QueryResult result = indexer.queryToken("dependency");
-
-        //then
-        assertThat(result.getOccurrences().keySet(),
-                contains(containsString("target/test-classes/jinx/abl.bla"),
-                        containsString("target/test-classes/jinx/inner/bla.bla"))
-        );
+    @AfterEach
+    public void afterEach() {
+        indexer.close();
     }
 
     @SneakyThrows
     @Test
-    public void indexInnerFolder() {
-        //given
+    public void indexInnerAndOuterFolderFilesAlreadyExist() {
         indexer.index(List.of(outerFolderPath));
 
-        //when
-        Thread.sleep(1000);
-        final QueryResult result = indexer.queryToken("logback");
-
-        //then
-        assertThat(result.getOccurrences().keySet(),
-                contains(containsString(("target/test-classes/jinx/inner/bla.bla"))));
+        await("Checking inner and outer folder occurrences").until(() -> indexer.queryToken("dependency").getOccurrences().keySet(),
+                containsInAnyOrder(innerFolderPath + SEPARATOR + "bla.bla", outerFolderPath + SEPARATOR + "abl.bla"));
+        await("Checking inner folder occurrences").until(() -> indexer.queryToken("logback").getOccurrences().keySet(),
+                contains(innerFolderPath + SEPARATOR + "bla.bla"));
+        await("Checking outer folder occurrences").until(() -> indexer.queryToken("classic1").getOccurrences().keySet(),
+                contains(outerFolderPath + SEPARATOR + "abl.bla"));
     }
 
 
     @SneakyThrows
     @Test
     public void doubleDotFilePath() {
-        //given
         String innerFolderDoubleDot = innerFolderPath + SEPARATOR + ".." + SEPARATOR + "inner";
         indexer.index(List.of(innerFolderPath));
         indexer.index(List.of(innerFolderDoubleDot));
 
-        //when
-        Thread.sleep(1000);
-        final QueryResult result = indexer.queryToken("logback");
-
-        //then
-        assertThat(result.getOccurrences().keySet(), hasSize(1));
-        assertThat(result.getOccurrences().keySet(),
-                contains(containsString(("target/test-classes/jinx/inner/bla.bla"))));
-
-    }
-
-    @SneakyThrows
-    @Test
-    public void indexOuterFolder() {
-        //given
-        indexer.index(List.of(outerFolderPath));
-
-        //when
-        Thread.sleep(1000);
-        final QueryResult result = indexer.queryToken("classic1");
-
-        //then
-        assertThat(result.getOccurrences().keySet(),
-                contains(containsString(("target/test-classes/jinx/abl.bla"))));
+        await("Checking double dot path is not added")
+                .until(() -> indexer.queryToken("logback").getOccurrences().keySet(), hasSize(1));
+        await("Checking double dot path is not added")
+                .until(() -> indexer.queryToken("logback").getOccurrences().keySet(),
+                contains(innerFolderPath + SEPARATOR + "bla.bla"));
     }
 
     @Test
-    public void outerFolderFileCreation() {
-        //given
+    public void indexFilesAndFolderOperations() {
         indexer.index(List.of(outerFolderPath));
 
-        //when
-        final String newFilePath = outerFolderPath + SEPARATOR + "outer.txt";
-        File newFile = new File(newFilePath);
-        try {
-            newFile.createNewFile();
-            try (final FileWriter fileWriter = new FileWriter(newFile)) {
-                fileWriter.write("newOuterFile");
-            }
-            Thread.sleep(15000);
-            final QueryResult result = indexer.queryToken("newOuterFile");
+        //files and folders creation
+        final String outerFilePath = outerFolderPath + SEPARATOR + "outer.txt";
+        final String outerFileContent = "newOuterFile";
+        final File outerFile = createFile(outerFilePath, outerFileContent);
 
-            //then
-            assertThat(result.getOccurrences().keySet(),
-                    containsInAnyOrder(newFilePath));
+        final String innerFilePath = innerFolderPath + SEPARATOR + "inner.txt";
+        final String innerFileContent = "newInnerFile";
+        final File innerFile = createFile(innerFilePath, innerFileContent);
 
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            newFile.delete();
-        }
-    }
-
-    @Test
-    public void creationOfFolderAndFile() {
-        //given
-        indexer.index(List.of(outerFolderPath));
-
-        //when
         final String newFolderPath = outerFolderPath + SEPARATOR + "newInner";
-        final String newFilePath = newFolderPath + SEPARATOR + "newInner.txt";
-        File newFolder = new File(newFolderPath);
-        File newFile = new File(newFilePath);
-        try {
-            newFolder.mkdir();
-            newFile.createNewFile();
-            try (final FileWriter fileWriter = new FileWriter(newFile)) {
-                fileWriter.write("newOuterFile");
-            }
-            Thread.sleep(15000);
-            final QueryResult result = indexer.queryToken("newOuterFile");
+        final String newFolderFilePath = newFolderPath + SEPARATOR + "newInner.txt";
+        final String innerFolderFileContent = "newInnerFolderAndFile";
+        createFolderAndFile(newFolderPath, newFolderFilePath, innerFolderFileContent);
 
-            //then
-            assertThat(result.getOccurrences().keySet(),
-                    containsInAnyOrder(newFilePath));
+        await("Checking the new file in the outer folder")
+                .until(() -> indexer.queryToken(outerFileContent).getOccurrences().keySet(),
+                contains(outerFilePath));
+        await("Checking the new file in the inner folder")
+                .until(() -> indexer.queryToken(innerFileContent).getOccurrences().keySet(),
+                contains(innerFilePath));
+        await("Checking the new folder and the new file inside it")
+                .until(() -> indexer.queryToken(innerFolderFileContent).getOccurrences().keySet(),
+                contains(newFolderFilePath));
 
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            newFile.delete();
-            newFolder.delete();
-        }
-    }
+        //files moving
+        final File movedInnerFile = moveFile(innerFilePath, outerFolderPath);
 
-    @Test
-    public void innerFolderFileCreation() {
-        //given
-        indexer.index(List.of(outerFolderPath));
+        await("Checking the new place containing moved file")
+                .until(() -> indexer.queryToken(innerFileContent).getOccurrences().keySet(),
+                contains(movedInnerFile.getPath()));
+        await("Checking the old place not containing moved file")
+                .until(() -> indexer.queryToken(innerFileContent).getOccurrences().keySet(),
+                not(contains(innerFile.getPath())));
 
-        //when
-        final String newFilePath = innerFolderPath + SEPARATOR + "inner.txt";
-        File newFile = new File(newFilePath);
-        try {
-            newFile.createNewFile();
-            try (final FileWriter fileWriter = new FileWriter(newFile)) {
-                fileWriter.write("newInnerFile");
-            }
-            Thread.sleep(15000);
-            final QueryResult result = indexer.queryToken("newInnerFile");
+        //folder renaming
+        final String renamedFolderPath = outerFolderPath + SEPARATOR + "renamedInner";
+        final String renamedFolderFilePath = renamedFolderPath + SEPARATOR + "newInner.txt";
+        final File renamedFolder = rename(newFolderPath, renamedFolderPath);
 
-            //then
-            assertThat(result.getOccurrences().keySet(),
-                    containsInAnyOrder(newFilePath));
+        await("Checking the renamed folder and the file inside it")
+                .until(() -> indexer.queryToken(innerFolderFileContent).getOccurrences().keySet(),
+                        contains(renamedFolderFilePath));
 
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            newFile.delete();
-        }
+        //files deletion
+        deleteFiles(outerFile, movedInnerFile, new File(renamedFolderFilePath));
+        deleteFiles(renamedFolder);
+
+        await("Checking the removed file in the outer folder")
+                .until(() -> indexer.queryToken(outerFileContent).getOccurrences().keySet(),
+                empty());
+        await("Checking the removed file in the inner folder")
+                .until(() -> indexer.queryToken(innerFileContent).getOccurrences().keySet(),
+                empty());
+        await("Checking the removed file in the removed folder")
+                .until(() -> indexer.queryToken(innerFolderFileContent).getOccurrences().keySet(),
+                empty());
     }
 
     @Test
     @SneakyThrows
-    public void outerFolderFileChange() {
-        //given
+    public void indexFileContentChange() {
         indexer.index(List.of(outerFolderPath));
 
-        //when
-        final String filePath = outerFolderPath + SEPARATOR + "abl.bla";
-        final String content = Files.readString(Paths.get(filePath));
-        try {
-            try (final FileWriter fileWriter = new FileWriter(filePath, true)) {
-                fileWriter.write("\nnewLineText");
-            }
-            Thread.sleep(15000);
-            final QueryResult result = indexer.queryToken("newLineText");
+        final String outerFilePath = outerFolderPath + SEPARATOR + "abl.bla";
+        final String outerOriginalContent = readContent(outerFilePath);
+        final String outerAdditionToFile = "newOuterLineText";
+        appendNewLineToFile(outerFilePath, outerAdditionToFile);
 
-            //then
-            assertThat(result.getOccurrences().keySet(),
-                    containsInAnyOrder(filePath));
+        final String innerFilePath = innerFolderPath + SEPARATOR + "bla.bla";
+        final String innerOriginalContent = readContent(innerFilePath);
+        final String innerAdditionToFile = "newInnerLineText";
+        appendNewLineToFile(innerFilePath, innerAdditionToFile);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try (final FileWriter fileWriter = new FileWriter(filePath)) {
-                fileWriter.write(content);
-            }
-        }
-    }
+        await("Looking for the addition in the outer folder file")
+                .until(() -> indexer.queryToken(outerAdditionToFile).getOccurrences().keySet(),
+                contains(outerFilePath));
+        await("Looking for the addition in the inner folder file")
+                .until(() -> indexer.queryToken(innerAdditionToFile).getOccurrences().keySet(),
+                contains(innerFilePath));
 
+        rewriteFileContent(outerFilePath, outerOriginalContent);
+        rewriteFileContent(innerFilePath, innerOriginalContent);
 
-    @Test
-    @SneakyThrows
-    public void innerFolderFileChange() {
-        //given
-        indexer.index(List.of(outerFolderPath));
-
-        //when
-        final String filePath = innerFolderPath + SEPARATOR + "bla.bla";
-        final String content = Files.readString(Paths.get(filePath));
-        try {
-            try (final FileWriter fileWriter = new FileWriter(filePath, true)) {
-                fileWriter.write("\nnewLineText");
-            }
-            Thread.sleep(15000);
-            final QueryResult result = indexer.queryToken("newLineText");
-
-            //then
-            assertThat(result.getOccurrences().keySet(),
-                    containsInAnyOrder(filePath));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try (final FileWriter fileWriter = new FileWriter(filePath)) {
-                fileWriter.write(content);
-            }
-        }
+        await("Looking for the deleted line in the outer folder file")
+                .until(() -> indexer.queryToken(outerAdditionToFile).getOccurrences().keySet(),
+                empty());
+        await("Looking for the deleted line in the inner folder file")
+                .until(() -> indexer.queryToken(innerAdditionToFile).getOccurrences().keySet(),
+                empty());
     }
 
 }

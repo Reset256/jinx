@@ -35,7 +35,6 @@ public class Index {
     private final Lock readLock;
     private final ExecutorService indexExecutorService;
 
-
     public Index(Collection<String> ignoredNames) {
         if (ignoredNames == null || ignoredNames.isEmpty()) {
             this.ignoredNames = Collections.emptySet();
